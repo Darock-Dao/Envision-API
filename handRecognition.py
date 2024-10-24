@@ -31,6 +31,7 @@ mp_drawing_styles = mp.solutions.drawing_styles
 # Global variables to calculate FPS
 COUNTER, FPS = 0, 0
 START_TIME = time.time()
+current_gesture = ""
 
 
 def run(model: str, num_hands: int,
@@ -54,7 +55,7 @@ def run(model: str, num_hands: int,
   """
 
   # Start capturing video input from the camera
-  cap = cv2.VideoCapture(camera_id)
+  cap = cv2.VideoCapture(1)
   cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
   cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
@@ -142,6 +143,9 @@ def run(model: str, num_hands: int,
           category_name = gesture[0].category_name
           score = round(gesture[0].score, 2)
           result_text = f'{category_name} ({score})'
+          
+          current_gesture = category_name
+          print(category_name)
 
           # Compute text size
           text_size = \
@@ -189,6 +193,8 @@ def run(model: str, num_hands: int,
   recognizer.close()
   cap.release()
   cv2.destroyAllWindows()
+
+
 
 
 def main():
