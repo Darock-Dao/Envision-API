@@ -6,7 +6,7 @@ class Envision:
     def __init__(self):
         self.engine = gestureEngine()
     
-    def runEngine(self):
+    def start(self):
         self.engine.main()
 
     def isThumbsUp(self):
@@ -33,7 +33,7 @@ class Envision:
 
 if __name__ == '__main__':
     envision = Envision()
-    envision.runEngine()
+    envision.start()
     '''
     thumbUp_thread = threading.Thread(target=isThumbsUp, args=(engine,))
         
