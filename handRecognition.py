@@ -33,6 +33,12 @@ class gestureEngine:
   COUNTER, FPS = 0, 0
   START_TIME = time.time()
   current_gesture = ""
+  
+  def check_gesture(self, user_category):
+    return self.getCurrentGesture() == user_category
+  
+  def getCurrentGesture(self):
+    return self.current_gesture
 
   def run(self, model: str, num_hands: int,
     min_hand_detection_confidence: float,
@@ -59,7 +65,7 @@ class gestureEngine:
 
     recognition_frame = None
     recognition_result_list = []
-
+    
     def save_result(result: vision.GestureRecognizerResult,
                     unused_output_image: mp.Image, timestamp_ms: int):
         #global self.FPS, self.COUNTER, self.START_TIME
@@ -130,7 +136,7 @@ class gestureEngine:
             result_text = f'{category_name} ({score})'
             
             self.current_gesture = category_name
-            print(category_name)
+            #print(self.check_gesture("Thumb_Up"))
 
             # Compute text size
             text_size = \
@@ -179,12 +185,6 @@ class gestureEngine:
     cap.release()
     cv2.destroyAllWindows()
   
-  def getCurrentGesture():
-    return self.current_gesture
-  
-  def check_gesture(user_category):
-    return getCurrentGesture() == user_category
-
   def main(self):
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
