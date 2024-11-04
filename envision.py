@@ -2,36 +2,44 @@ from handRecognition import gestureEngine
 import threading
 import time
 
-def runEngine(engine):
-    engine.main()
+class Envision:
+    def __init__(self):
+        self.engine = gestureEngine()
     
-def isThumbsUp(engine):
-    return engine.check_gesture("Thumb_Up")
+    def runEngine(self):
+        self.engine.main()
 
-def isThumbsDown(engine):
-    return engine.check_gesture("Thumb_Down")
+    def isThumbsUp(self):
+        return self.engine.check_gesture("Thumb_Up")
 
-def isVictory(engine):
-    return engine.check_gesture("Victory")
+    def isThumbsDown(self):
+        return self.engine.check_gesture("Thumb_Down")
+    
+    def isPointingUp(self):
+        return self.engine.check_gesture("Pointing_Up")
 
-def isOpenPalm(engine):
-    return engine.check_gesture("Open_Palm")
+    def isVictory(self):
+        return self.engine.check_gesture("Victory")
 
-def isClosedFist(engine):
-    return engine.check_gesture("Closed_Fist")
+    def isOpenPalm(self):
+        return self.engine.check_gesture("Open_Palm")
 
-def isILoveYou(engine):
-    return engine.check_gesture("ILoveYou")
+    def isClosedFist(self):
+        return self.engine.check_gesture("Closed_Fist")
+
+    def isILoveYou(self):
+        return self.engine.check_gesture("ILoveYou")
 
 
 if __name__ == '__main__':
-    engine = gestureEngine()    
+    envision = Envision()
+    envision.runEngine()
+    '''
     thumbUp_thread = threading.Thread(target=isThumbsUp, args=(engine,))
         
     thumbUp_thread.start()
     runEngine(engine)
 
-
     thumbUp_thread.join()
-    
+    '''
     
