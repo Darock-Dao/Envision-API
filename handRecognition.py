@@ -33,13 +33,21 @@ class gestureEngine:
   COUNTER, FPS = 0, 0
   START_TIME = time.time()
   current_gesture = ""
+  recognition_result_list = []
   
   def check_gesture(self, user_category):
     return self.getCurrentGesture() == user_category
   
   def getCurrentGesture(self):
     return self.current_gesture
+  
+  def isHandsDetected(self):
+    if self.recognition_result_list != []:
+      return self.recognition_result_list[0].gestures != []
+    else:
+      return False
 
+  
   def run(self, model: str, num_hands: int,
     min_hand_detection_confidence: float,
     min_hand_presence_confidence: float, min_tracking_confidence: float,
@@ -64,7 +72,7 @@ class gestureEngine:
     label_thickness = 2
 
     recognition_frame = None
-    recognition_result_list = []
+    #self.recognition_result_list = []
     
     def save_result(result: vision.GestureRecognizerResult,
                     unused_output_image: mp.Image, timestamp_ms: int):
@@ -75,7 +83,9 @@ class gestureEngine:
             self.FPS = fps_avg_frame_count / (time.time() - self.START_TIME)
             self.START_TIME = time.time()
 
-        recognition_result_list.append(result)
+        self.recognition_result_list.append(result)
+        #print(self.recognition_result_list[0].gestures == [])
+        #print(result)
         self.COUNTER += 1
 
     # Initialize the gesture recognizer model
@@ -113,10 +123,10 @@ class gestureEngine:
       cv2.putText(current_frame, fps_text, text_location, cv2.FONT_HERSHEY_DUPLEX,
                   font_size, text_color, font_thickness, cv2.LINE_AA)
 
-      if recognition_result_list:
+      if self.recognition_result_list:
         # Draw landmarks and write the text for each hand.
         for hand_index, hand_landmarks in enumerate(
-            recognition_result_list[0].hand_landmarks):
+            self.recognition_result_list[0].hand_landmarks):
           # Calculate the bounding box of the hand
           x_min = min([landmark.x for landmark in hand_landmarks])
           y_min = min([landmark.y for landmark in hand_landmarks])
@@ -129,14 +139,13 @@ class gestureEngine:
           y_max_px = int(y_max * frame_height)
 
           # Get gesture classification results
-          if recognition_result_list[0].gestures:
-            gesture = recognition_result_list[0].gestures[hand_index]
+          if self.recognition_result_list[0].gestures:
+            gesture = self.recognition_result_list[0].gestures[hand_index]
             category_name = gesture[0].category_name
             score = round(gesture[0].score, 2)
             result_text = f'{category_name} ({score})'
             
             self.current_gesture = category_name
-            #print(self.check_gesture("Thumb_Up"))
 
             # Compute text size
             text_size = \
@@ -172,7 +181,7 @@ class gestureEngine:
             mp_drawing_styles.get_default_hand_connections_style())
 
         recognition_frame = current_frame
-        recognition_result_list.clear()
+        self.recognition_result_list.clear()
 
       if recognition_frame is not None:
           cv2.imshow('gesture_recognition', recognition_frame)
