@@ -23,6 +23,9 @@ def isClosedFist(engine):
 def isILoveYou(engine):
     return engine.check_gesture("ILoveYou")
 
+def isDetected(engine):
+    return engine.isHandsDetected()
+
 
 if __name__ == '__main__':
     engine = gestureEngine()    
