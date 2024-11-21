@@ -23,6 +23,8 @@ import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 from mediapipe.framework.formats import landmark_pb2
+from mediapipe.tasks.python.vision.gesture_recognizer import GestureRecognizerResult
+
 mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
@@ -33,12 +35,16 @@ class gestureEngine:
   COUNTER, FPS = 0, 0
   START_TIME = time.time()
   current_gesture = ""
+  current_landmarks = []
   
   def check_gesture(self, user_category):
     return self.getCurrentGesture() == user_category
   
   def getCurrentGesture(self):
     return self.current_gesture
+  
+  def getCurrentLandmarks(self):
+     return self.current_landmarks
 
   def run(self, model: str, num_hands: int,
     min_hand_detection_confidence: float,
@@ -46,7 +52,7 @@ class gestureEngine:
     camera_id: int, width: int, height: int) -> None:
 
     # Start capturing video input from the camera
-    cap = cv2.VideoCapture(1)
+    cap = cv2.VideoCapture(0)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
@@ -114,6 +120,7 @@ class gestureEngine:
                   font_size, text_color, font_thickness, cv2.LINE_AA)
 
       if recognition_result_list:
+
         # Draw landmarks and write the text for each hand.
         for hand_index, hand_landmarks in enumerate(
             recognition_result_list[0].hand_landmarks):
@@ -136,8 +143,8 @@ class gestureEngine:
             result_text = f'{category_name} ({score})'
             
             self.current_gesture = category_name
-            #print(self.check_gesture("Thumb_Up"))
-
+            self.current_landmarks = recognition_result_list
+            
             # Compute text size
             text_size = \
             cv2.getTextSize(result_text, cv2.FONT_HERSHEY_DUPLEX, label_font_size,
