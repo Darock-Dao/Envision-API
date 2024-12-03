@@ -34,14 +34,21 @@ class gestureEngine:
   # Class variables to calculate FPS
   COUNTER, FPS = 0, 0
   START_TIME = time.time()
-  current_gesture = ""
+  left_hand_gesture_gesture = ""
+  right_hand_gesture = ""
   current_landmarks = []
   
-  def check_gesture(self, user_category):
-    return self.getCurrentGesture() == user_category
+  def checkLeftGesture(self, user_category):
+    return self.getLeftHandGesture() == user_category
   
-  def getCurrentGesture(self):
-    return self.current_gesture
+  def checkRightGesture(self, user_category):
+    return self.getLeftHandGesture() == user_category
+  
+  def getLeftHandGesture(self):
+    return self.left_hand_gesture
+  
+  def getRightHandGesture(self):
+    return self.right_hand_gesture
   
   def getCurrentLandmarks(self):
      return self.current_landmarks
@@ -120,10 +127,15 @@ class gestureEngine:
                   font_size, text_color, font_thickness, cv2.LINE_AA)
 
       if recognition_result_list:
+        self.current_landmarks = recognition_result_list
 
         # Draw landmarks and write the text for each hand.
         for hand_index, hand_landmarks in enumerate(
             recognition_result_list[0].hand_landmarks):
+          
+          # Determine whether it's the left or right hand
+          handedness = recognition_result_list[0].handedness[hand_index][0].category_name
+
           # Calculate the bounding box of the hand
           x_min = min([landmark.x for landmark in hand_landmarks])
           y_min = min([landmark.y for landmark in hand_landmarks])
@@ -142,8 +154,10 @@ class gestureEngine:
             score = round(gesture[0].score, 2)
             result_text = f'{category_name} ({score})'
             
-            self.current_gesture = category_name
-            self.current_landmarks = recognition_result_list
+            if handedness == "Left":
+                self.left_hand_gesture = category_name
+            if handedness == "Right":
+                self.right_hand_gesture = category_name
             
             # Compute text size
             text_size = \
@@ -204,7 +218,7 @@ class gestureEngine:
         '--numHands',
         help='Max number of hands that can be detected by the recognizer.',
         required=False,
-        default=1)
+        default=2)
     parser.add_argument(
         '--minHandDetectionConfidence',
         help='The minimum confidence score for hand detection to be considered '

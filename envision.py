@@ -5,7 +5,8 @@ import time
 class Envision:
     def __init__(self):
         self.engine = gestureEngine()
-        self.current_gesture = ""
+        self.left_hand_gesture = ""
+        self.right_hand_gesture = ""
         self.current_landmarks = []
         self.callback = None
         self._running = False
@@ -26,26 +27,47 @@ class Envision:
         """Optional: set a callback to run when a gesture is detected."""
         self.callback = callback_func
 
-    def isThumbsUp(self):
-        return self.engine.check_gesture("Thumb_Up")
+    def leftIsThumbsUp(self):
+        return self.engine.checkLeftGesture("Thumb_Up")
 
-    def isThumbsDown(self):
-        return self.engine.check_gesture("Thumb_Down")
+    def leftIsThumbsDown(self):
+        return self.engine.checkLeftGesture("Thumb_Down")
     
-    def isPointingUp(self):
-        return self.engine.check_gesture("Pointing_Up")
+    def leftIsPointingUp(self):
+        return self.engine.checkLeftGesture("Pointing_Up")
 
-    def isVictory(self):
-        return self.engine.check_gesture("Victory")
+    def leftIsVictory(self):
+        return self.engine.checkLeftGesture("Victory")
 
-    def isOpenPalm(self):
-        return self.engine.check_gesture("Open_Palm")
+    def leftIsOpenPalm(self):
+        return self.engine.checkLeftGesture("Open_Palm")
 
-    def isClosedFist(self):
-        return self.engine.check_gesture("Closed_Fist")
+    def leftIsClosedFist(self):
+        return self.engine.checkLeftGesture("Closed_Fist")
 
-    def isILoveYou(self):
-        return self.engine.check_gesture("ILoveYou")
+    def leftIsILoveYou(self):
+        return self.engine.checkLeftGesture("ILoveYou")
+    
+    def rightIsThumbsUp(self):
+        return self.engine.checkRightGesture("Thumb_Up")
+
+    def rightIsThumbsDown(self):
+        return self.engine.checkRightGesture("Thumb_Down")
+    
+    def rightIsPointingUp(self):
+        return self.engine.checkRightGesture("Pointing_Up")
+
+    def rightIsVictory(self):
+        return self.engine.checkRightGesture("Victory")
+
+    def rightIsOpenPalm(self):
+        return self.engine.checkRightGesture("Open_Palm")
+
+    def rightIsClosedFist(self):
+        return self.engine.checkRightGesture("Closed_Fist")
+
+    def rightIsILoveYou(self):
+        return self.engine.checkRightGesture("ILoveYou")
     
     def run_with_gesture_callback(self):
         """Run the recognizer and trigger the callback when gestures are detected."""
@@ -59,42 +81,56 @@ class Envision:
         """Process callbacks for both gestures and landmarks."""
         while self._running:
             try:
-                # Retrieve current gesture and landmarks
-                new_gesture = self.engine.getCurrentGesture()
-                new_landmarks = self.engine.getCurrentLandmarks()
+                #Note: Uses the opposite hand because camera is mirrored
+                left_gesture = self.engine.getRightHandGesture()
+                right_gesture = self.engine.getLeftHandGesture()
+                landmarks_list = self.engine.getCurrentLandmarks()
 
-                # Create a detection payload with both gesture and landmarks
                 detection = {}
-                if new_gesture != self.current_gesture:
-                    self.current_gesture = new_gesture
-                    detection["gesture"] = new_gesture
-                else:   
-                    detection["gesture"] = self.current_gesture
+                if left_gesture:
+                    detection["left_gesture"] = left_gesture
+                if right_gesture:
+                    detection["right_gesture"] = right_gesture
 
-                if new_landmarks != self.current_landmarks:
-                    self.current_landmarks = new_landmarks
-                    detection["landmarks"] = new_landmarks
-                else:
-                    detection["landmarks"] = self.current_landmarks
+                # Extract and include landmarks for each hand
+                if landmarks_list:
+                    left_landmarks, right_landmarks = [], []
+                    for hand_index, hand_landmarks in enumerate(landmarks_list[0].hand_landmarks):
+                        handedness = landmarks_list[0].handedness[hand_index][0].category_name
+                        landmarks = [(landmark.x, landmark.y, landmark.z) for landmark in hand_landmarks]
+                        
+                        if handedness == "Left":
+                            left_landmarks = landmarks
+                        if handedness == "Right":
+                            right_landmarks = landmarks
 
-                # Trigger callback only if there is new data
+                    # Swap because camera is mirrored
+                    detection["left_landmarks"] = right_landmarks
+                    detection["right_landmarks"] = left_landmarks
+
+                # Trigger callback if gestures are detected
                 if detection and self.callback:
                     self.callback(detection)
+
+                    # Trigger callback only if there is new data
+                    if detection and self.callback:
+                        self.callback(detection)
 
             except Exception as e:
                 print(f"Callback processing error: {e}")
             time.sleep(0.025)
 
-def print_gesture(gesture):
-    print(f"Detected gesture: {gesture}")
-
 def handle_detection(detection):
     """Handle detection results (gestures or landmarks)."""
 
-    if "gesture" in detection:
-        print(f"Detected gesture: {detection['gesture']}")
-    if "landmarks" in detection:
-        print(f"Detected landmarks: {detection['landmarks']}")
+    if "left_gesture" in detection:
+        print(f"Left Hand Gesture: {detection['left_gesture']}")
+    if "right_gesture" in detection:
+        print(f"Right Hand Gesture: {detection['right_gesture']}")
+    if "left_landmarks" in detection:
+        print(f"Left Hand Landmarks: {detection['left_landmarks']}")
+    if "right_landmarks" in detection:
+        print(f"Right Hand Landmarks: {detection['right_landmarks']}")
 
 if __name__ == '__main__':
     envision = Envision()
