@@ -132,6 +132,12 @@ def handle_detection(detection):
         print(f"Left Hand Landmarks: {detection['left_landmarks']}")
     if "right_landmarks" in detection:
         print(f"Right Hand Landmarks: {detection['right_landmarks']}")
+def isILoveYou(engine):
+    return engine.check_gesture("ILoveYou")
+
+def isDetected(engine):
+    return engine.isHandsDetected()
+
 
 if __name__ == '__main__':
     envision = Envision()
