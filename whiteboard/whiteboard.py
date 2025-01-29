@@ -3,10 +3,17 @@ from tkinter.colorchooser import askcolor
 from tkinter import ttk
 import tkinter as tk
 
+import sys
+import os
+import threading
+# Add the parent directory to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import envision
+
 root = Tk()
 root.title("White Board")
 root.geometry("1050x570+150+50")
-root.configure(bg="#f2f3f5")
+root.configure( bg="#f2f3f5")
 root.resizable(False,False)
 
 current_x = 0
@@ -103,4 +110,32 @@ slider.place(x=30,y=530)
 value_label = ttk.Label(root,text = get_current_value())
 value_label.place(x=27,y=550)
 
-root.mainloop()
+
+
+"""THE FOLLOWING CODE CONTAINS THE INTEGRATION OF ENVISION
+    AND IS SEPARATE FROM THE BASE WHITEBOARD APP."""
+
+def handle_detection(detection):
+    """Handle detection results (gestures or landmarks)."""
+
+    if "left_gesture" in detection:
+        print(f"Left Hand Gesture: {detection['left_gesture']}")
+    if "right_gesture" in detection:
+        print(f"Right Hand Gesture: {detection['right_gesture']}")
+    if "left_landmarks" in detection:
+        print(f"Left Hand Landmarks: {detection['left_landmarks']}")
+    if "right_landmarks" in detection:
+        print(f"Right Hand Landmarks: {detection['right_landmarks']}")
+
+envision = envision.Envision()
+envision.set_callback(handle_detection)
+
+def run_whiteboard():
+    """Runs the whiteboard ui in a separate thread"""
+    global root
+    root.mainloop()
+
+whiteboard_thread = threading.Thread(target=run_whiteboard, daemon=True)
+whiteboard_thread.start()
+
+#envision.start()
