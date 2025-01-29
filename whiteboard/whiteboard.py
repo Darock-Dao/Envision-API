@@ -128,14 +128,22 @@ def handle_detection(detection):
         print(f"Right Hand Landmarks: {detection['right_landmarks']}")
 
 envision = envision.Envision()
-envision.set_callback(handle_detection)
 
-def run_whiteboard():
-    """Runs the whiteboard ui in a separate thread"""
-    global root
-    root.mainloop()
+def run_envision():
+    """Run the Envision SDK in a separate thread."""
+    global envision
+    envision.set_callback(handle_detection)
+    try:
+        envision.start()
+    except KeyboardInterrupt:
+        print("Stopping Envision...")
+        envision.stop()
+    finally:
+        envision.stop()
 
-whiteboard_thread = threading.Thread(target=run_whiteboard, daemon=True)
-whiteboard_thread.start()
+# Start Envision in a new thread
+envision_thread = threading.Thread(target=run_envision, daemon=True)
+envision_thread.start()
 
-#envision.start()
+
+root.mainloop()

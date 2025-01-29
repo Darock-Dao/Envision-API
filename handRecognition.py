@@ -195,8 +195,8 @@ class gestureEngine:
         recognition_frame = current_frame
         recognition_result_list.clear()
 
-      if recognition_frame is not None:
-          cv2.imshow('gesture_recognition', recognition_frame)
+      #if recognition_frame is not None:
+          #cv2.imshow('gesture_recognition', recognition_frame)
 
       # Stop the program if the ESC key is pressed.
       if cv2.waitKey(1) == 27:
@@ -213,7 +213,7 @@ class gestureEngine:
         '--model',
         help='Name of gesture recognition model.',
         required=False,
-        default='gesture_recognizer.task')
+        default='/Users/derekdao/Documents/eecs159a/workspace2/gesture_recognizer.task')
     parser.add_argument(
         '--numHands',
         help='Max number of hands that can be detected by the recognizer.',
