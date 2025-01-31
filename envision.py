@@ -74,7 +74,7 @@ class Envision:
     def left_landmarks(self):
         return self.left_landmarks
     
-    def right_landmarks(self):
+    def get_right_landmarks(self):
         return self.right_landmarks
     
     def run_with_gesture_callback(self):

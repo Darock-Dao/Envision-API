@@ -20,19 +20,18 @@ current_x = 0
 current_y = 0
 color = 'black'
 
-def locate_xy(envision):
+def locate_xy(work):
 
     global current_x, current_y
-    right_index_tip = envision.right_landmarks()[8]
-    current_x = right_index_tip[0]
-    current_y = right_index_tip[1]
+    current_x = work.x
+    current_y = work.y
 
-def addLine(x, y):
+def addLine(work):
     global current_x, current_y
 
-    canvas.create_line((current_x,current_y,x,y),width=get_current_value(),fill=color,
+    canvas.create_line((current_x,current_y,work.x,work.y),width=get_current_value(),fill=color,
                        capstyle=ROUND, smooth=TRUE)
-    current_x, current_y = x, y
+    current_x, current_y = work.x, work.y
 
 def show_color(new_color):
     global color
@@ -91,8 +90,6 @@ display_pallette()
 canvas= Canvas(root,width=930, height=500, background="white",cursor="hand2")
 canvas.place(x=100, y=10)
 
-envision = envision.Envision()
-
 canvas.bind('<Button-1>', locate_xy)
 canvas.bind('<B1-Motion>', addLine)
 
@@ -113,20 +110,32 @@ slider.place(x=30,y=530)
 value_label = ttk.Label(root,text = get_current_value())
 value_label.place(x=27,y=550)
 
+
+
 """THE FOLLOWING CODE CONTAINS THE INTEGRATION OF ENVISION
     AND IS SEPARATE FROM THE BASE WHITEBOARD APP."""
 
-def handle_detection(detection):
-    """Handle detection results (gestures or landmarks)."""
+def map_to_canvas(norm_x, norm_y):
+    canvas_width = 930
+    canvas_height = 500
+    x = int(norm_x * canvas_width)
+    y = int(norm_y * canvas_height)
+    return x, y
 
-    if "left_gesture" in detection:
-        print(f"Left Hand Gesture: {detection['left_gesture']}")
-    if "right_gesture" in detection:
-        print(f"Right Hand Gesture: {detection['right_gesture']}")
-    if "left_landmarks" in detection:
-        print(f"Left Hand Landmarks: {detection['left_landmarks']}")
-    if "right_landmarks" in detection:
-        print(f"Right Hand Landmarks: {detection['right_landmarks']}")
+def handle_detection(detection):
+    """Handle detection results (gestures or landmarks) as a moving cursor."""
+    global cursor_dot
+    landmarks = envision.get_right_landmarks()
+    
+    if landmarks:
+        index_tip = landmarks[8]  # Index finger tip
+        x, y = int(index_tip[0] * 930), int(index_tip[1] * 500)  # Scale to canvas size
+
+        # Remove the previous dot before drawing the new one
+        canvas.delete("cursor_dot")
+        cursor_dot = canvas.create_oval(x-5, y-5, x+5, y+5, fill=color, tags="cursor_dot")
+
+envision = envision.Envision()
 
 def run_envision():
     """Run the Envision SDK in a separate thread."""
@@ -144,4 +153,5 @@ def run_envision():
 envision_thread = threading.Thread(target=run_envision, daemon=True)
 envision_thread.start()
 
-root.mainloop() 
+
+root.mainloop()
