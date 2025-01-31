@@ -8,6 +8,8 @@ class Envision:
         self.left_hand_gesture = ""
         self.right_hand_gesture = ""
         self.current_landmarks = []
+        self.left_landmarks = []
+        self.right_landmarks = []
         self.callback = None
         self._running = False
         self._callback_thread = None
@@ -69,6 +71,12 @@ class Envision:
     def rightIsILoveYou(self):
         return self.engine.checkRightGesture("ILoveYou")
     
+    def left_landmarks(self):
+        return self.left_landmarks
+    
+    def right_landmarks(self):
+        return self.right_landmarks
+    
     def run_with_gesture_callback(self):
         """Run the recognizer and trigger the callback when gestures are detected."""
         while self._running:
@@ -108,6 +116,9 @@ class Envision:
                     detection["left_landmarks"] = right_landmarks
                     detection["right_landmarks"] = left_landmarks
 
+                    self.left_landmarks = right_landmarks
+                    self.right_landmarks = left_landmarks
+
                 # Trigger callback if gestures are detected
                 if detection and self.callback:
                     self.callback(detection)
@@ -122,7 +133,7 @@ class Envision:
 
 def handle_detection(detection):
     """Handle detection results (gestures or landmarks)."""
-
+    
     if "left_gesture" in detection:
         print(f"Left Hand Gesture: {detection['left_gesture']}")
     if "right_gesture" in detection:
