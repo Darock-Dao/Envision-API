@@ -129,7 +129,7 @@ class Envision:
 
             except Exception as e:
                 print(f"Callback processing error: {e}")
-            time.sleep(0.025)
+            time.sleep(0.0100)
 
 def handle_detection(detection):
     """Handle detection results (gestures or landmarks)."""

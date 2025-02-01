@@ -122,6 +122,7 @@ def map_to_canvas(norm_x, norm_y):
     y = int(norm_y * canvas_height)
     return x, y
 
+
 def handle_detection(detection):
     """Handle detection results (gestures or landmarks) as a moving cursor."""
     global cursor_dot
