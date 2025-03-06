@@ -6,6 +6,7 @@ import tkinter as tk
 import sys
 import os
 import threading
+
 # Add the parent directory to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import envision
@@ -20,18 +21,21 @@ current_x = 0
 current_y = 0
 color = 'black'
 
+
 def locate_xy(work):
 
     global current_x, current_y
-    current_x = work.x
-    current_y = work.y
+    #current_x = work.x
+    #current_y = work.y
+    current_x = x
+    current_y = y
 
 def addLine(work):
     global current_x, current_y
 
-    canvas.create_line((current_x,current_y,work.x,work.y),width=get_current_value(),fill=color,
+    canvas.create_line((current_x,current_y,x,y),width=get_current_value(),fill=color,
                        capstyle=ROUND, smooth=TRUE)
-    current_x, current_y = work.x, work.y
+    current_x, current_y = x, y
 
 def show_color(new_color):
     global color
@@ -93,7 +97,6 @@ canvas.place(x=100, y=10)
 canvas.bind('<Button-1>', locate_xy)
 canvas.bind('<B1-Motion>', addLine)
 
-
 ########SLIDER########
 current_value = tk.DoubleVar()
 
@@ -110,8 +113,6 @@ slider.place(x=30,y=530)
 value_label = ttk.Label(root,text = get_current_value())
 value_label.place(x=27,y=550)
 
-
-
 """THE FOLLOWING CODE CONTAINS THE INTEGRATION OF ENVISION
     AND IS SEPARATE FROM THE BASE WHITEBOARD APP."""
 
@@ -122,19 +123,37 @@ def map_to_canvas(norm_x, norm_y):
     y = int(norm_y * canvas_height)
     return x, y
 
+'''def get_coordinates():
+    landmarks = envision.get_right_landmarks()
+    x, y = 0, 0
+    if landmarks:
+        index_tip = landmarks[8]  # Index finger tip
+        global x, y
+        x, y = int(index_tip[0] * 930), int(index_tip[1] * 500)
+    return x,y '''
+
+drawing = False  # Track whether we're actively drawing
 
 def handle_detection(detection):
     """Handle detection results (gestures or landmarks) as a moving cursor."""
-    global cursor_dot
+    global cursor_dot, current_x, current_y, drawing
     landmarks = envision.get_right_landmarks()
     
     if landmarks:
         index_tip = landmarks[8]  # Index finger tip
+        global x, y
         x, y = int(index_tip[0] * 930), int(index_tip[1] * 500)  # Scale to canvas size
-
         # Remove the previous dot before drawing the new one
         canvas.delete("cursor_dot")
         cursor_dot = canvas.create_oval(x-5, y-5, x+5, y+5, fill=color, tags="cursor_dot")
+
+        if envision.rightIsPointingUp():
+            if not drawing:  # If starting a new drawing, reset the previous position
+                current_x, current_y = x, y
+                drawing = True  # Now in drawing mode
+            addLine(1)
+        else:
+            drawing = False  # Reset when hand is lifted
 
 envision = envision.Envision()
 
