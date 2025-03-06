@@ -71,7 +71,13 @@ class Envision:
     def rightIsILoveYou(self):
         return self.engine.checkRightGesture("ILoveYou")
     
-    def left_landmarks(self):
+    def get_left_gesture(self):
+        return self.left_hand_gesture
+    
+    def get_right_gesture(self):
+        return self.right_hand_gesture
+
+    def get_left_landmarks(self):
         return self.left_landmarks
     
     def get_right_landmarks(self):
