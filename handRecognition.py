@@ -34,7 +34,7 @@ class gestureEngine:
   # Class variables to calculate FPS
   COUNTER, FPS = 0, 0
   START_TIME = time.time()
-  left_hand_gesture_gesture = ""
+  left_hand_gesture = ""
   right_hand_gesture = ""
   current_landmarks = []
   
