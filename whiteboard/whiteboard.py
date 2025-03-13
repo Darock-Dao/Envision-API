@@ -9,7 +9,7 @@ import threading
 
 # Add the parent directory to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-import envision
+import envisionlegacyhardware
 
 root = Tk()
 root.title("White Board")
@@ -142,7 +142,7 @@ def handle_detection(detection):
     if landmarks:
         index_tip = landmarks[8]  # Index finger tip
         global x, y
-        x, y = int(index_tip[0] * 930), int(index_tip[1] * 500)  # Scale to canvas size
+        x, y = int(930 - (index_tip[0] * 930)), int(index_tip[1] * 500)  # Scale to canvas size
         # Remove the previous dot before drawing the new one
         canvas.delete("cursor_dot")
         cursor_dot = canvas.create_oval(x-5, y-5, x+5, y+5, fill=color, tags="cursor_dot")
@@ -155,7 +155,10 @@ def handle_detection(detection):
         else:
             drawing = False  # Reset when hand is lifted
 
-envision = envision.Envision()
+        if envision.right_hand_gesture == "Open_Palm":
+            new_canvas()
+
+envision = envisionlegacyhardware.Envision()
 
 def run_envision():
     """Run the Envision SDK in a separate thread."""
