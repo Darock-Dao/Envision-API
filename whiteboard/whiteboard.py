@@ -147,16 +147,15 @@ def handle_detection(_, __):
         # Remove the previous dot before drawing the new one
         canvas.delete("cursor_dot")
         cursor_dot = canvas.create_oval(x-5, y-5, x+5, y+5, fill=color, tags="cursor_dot")
+        if drawing:
+            addLine(1)
+        current_x, current_y = x, y
 
         if envision.right_gesture == "Pointing_Up":
-            if not drawing:  # If starting a new drawing, reset the previous position
-                current_x, current_y = x, y
-                drawing = True  # Now in drawing mode
-            addLine(1)
-        else:
-            drawing = False  # Reset when hand is lifted
-
-        if envision.right_gesture == "Open_Palm":
+            drawing = True
+        elif envision.right_gesture == "Closed_Fist":
+            drawing = False
+        elif envision.right_gesture == "Open_Palm":
             new_canvas()
 
 envision = envisionhardware.Envision()

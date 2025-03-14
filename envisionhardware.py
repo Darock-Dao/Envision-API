@@ -41,9 +41,7 @@ class Envision:
     async def _run(self):
 
         scan = BleakScanner()
-        await scan.start()
         device = await scan.find_device_by_name(DEVICE_NAME)
-        await scan.stop()
         if device is None:
             print(f"Device {DEVICE_NAME} not found")
             return
