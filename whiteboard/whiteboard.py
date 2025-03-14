@@ -155,6 +155,18 @@ def handle_detection(_, update_type):
         if drawing:
             addLine(1)
         current_x, current_y = x, y
+        
+        # Update the width slider based on pinch distance
+        if hasattr(envision, 'right_pinch_distance'):
+            # Map pinch distance to slider range (0-100)
+            # Pinch distances typically range from 0.01 (close) to 0.2 (wide)
+            # Adjust these min/max values as needed based on actual usage
+            min_distance = 0.01
+            max_distance = 0.2
+            normalized_distance = min(1.0, max(0.0, (envision.right_pinch_distance - min_distance) / (max_distance - min_distance)))
+            new_width = normalized_distance * 100
+            current_value.set(new_width)
+            value_label.configure(text=get_current_value())
 
     if update_type == "gesture":
         if envision.right_gesture == "Pointing_Up":
@@ -170,6 +182,8 @@ envision = envisionhardware.Envision()
 
 # Start Envision in a new thread
 envision.start()
+# Start tracking pinch distance
+envision.start_tracking("right_pinch_distance")
 envision.set_update_callback(handle_detection)
 
 
