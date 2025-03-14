@@ -5,11 +5,12 @@ import tkinter as tk
 
 import sys
 import os
-import threading
+
+
 
 # Add the parent directory to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-import envisionlegacyhardware
+import envisionhardware
 
 root = Tk()
 root.title("White Board")
@@ -134,10 +135,10 @@ def map_to_canvas(norm_x, norm_y):
 
 drawing = False  # Track whether we're actively drawing
 
-def handle_detection(detection):
+def handle_detection(_):
     """Handle detection results (gestures or landmarks) as a moving cursor."""
     global cursor_dot, current_x, current_y, drawing
-    landmarks = envision.get_right_landmarks()
+    landmarks = envision.right_landmarks
     
     if landmarks:
         index_tip = landmarks[8]  # Index finger tip
@@ -147,7 +148,7 @@ def handle_detection(detection):
         canvas.delete("cursor_dot")
         cursor_dot = canvas.create_oval(x-5, y-5, x+5, y+5, fill=color, tags="cursor_dot")
 
-        if envision.rightIsPointingUp():
+        if envision.right_gesture == "Pointing_Up":
             if not drawing:  # If starting a new drawing, reset the previous position
                 current_x, current_y = x, y
                 drawing = True  # Now in drawing mode
@@ -155,26 +156,15 @@ def handle_detection(detection):
         else:
             drawing = False  # Reset when hand is lifted
 
-        if envision.right_hand_gesture == "Open_Palm":
+        if envision.right_gesture == "Open_Palm":
             new_canvas()
 
-envision = envisionlegacyhardware.Envision()
-
-def run_envision():
-    """Run the Envision SDK in a separate thread."""
-    global envision
-    envision.set_callback(handle_detection)
-    try:
-        envision.start()
-    except KeyboardInterrupt:
-        print("Stopping Envision...")
-        envision.stop()
-    finally:
-        envision.stop()
+envision = envisionhardware.Envision()
 
 # Start Envision in a new thread
-envision_thread = threading.Thread(target=run_envision, daemon=True)
-envision_thread.start()
+envision.start()
+envision.set_update_callback(handle_detection)
 
 
 root.mainloop()
+envision.stop()
