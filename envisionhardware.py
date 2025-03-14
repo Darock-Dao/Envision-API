@@ -13,10 +13,14 @@ LANDMARK_CHAR_UUID = "00000000-0000-0000-0000-0000feedc0dd"
 
 class Envision:
     def __init__(self):
+        # Define accessible gestures
         self.left_gesture = ""
         self.right_gesture = ""
         self.left_landmarks = []
         self.right_landmarks = []
+        self.right_pinch_strength = 0
+
+        # Bluetooth utils
         self.quit_event = asyncio.Event()
         self.debug = True
         self.update_callback = None
