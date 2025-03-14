@@ -135,7 +135,7 @@ def map_to_canvas(norm_x, norm_y):
 
 drawing = False  # Track whether we're actively drawing
 
-def handle_detection(_):
+def handle_detection(_, __):
     """Handle detection results (gestures or landmarks) as a moving cursor."""
     global cursor_dot, current_x, current_y, drawing
     landmarks = envision.right_landmarks

@@ -13,9 +13,9 @@ def trigger_swipe(direction):
     global held_keys
 
     if direction == "left":
-        pyautogui.hotkey("super", "a")  # Switch to previous desktop
+        pyautogui.hotkey("ctrl", "left")  # Switch to previous desktop
     elif direction == "right":
-        pyautogui.hotkey("super", "d")  # Switch to next desktop
+        pyautogui.hotkey("ctrl", "right")  # Switch to next desktop
     elif direction == "up":
         # Open Mission Control
         pyautogui.keyDown("f9")  # Hold F9 indefinitely
@@ -33,6 +33,9 @@ def handle_detection(envision, update_type):
     if envision.right_gesture == "Victory":
         print("Switching to next desktop...")
         trigger_swipe("right")
+    elif envision.right_gesture == "Thumb_Up":
+        print("Switching to previous desktop...")
+        trigger_swipe("left")
     elif envision.right_gesture == "Open_Palm":
         print("Opening Mission Control...")
         trigger_swipe("up")
@@ -42,19 +45,17 @@ def handle_detection(envision, update_type):
             pyautogui.keyUp(key)  # Release all keys
         held_keys.clear()  # Clear the list of held keys
 
-    time.sleep(0.4)  # Small delay to prevent rapid execution
-
 if __name__ == "__main__":
 
     envision = envisionhardware.Envision()
     envision.set_update_callback(handle_detection)
 
-    envision_thread = threading.Thread(target=envision.start, daemon=True)
-    envision_thread.start()
+    envision.start()
 
     # Keep the main thread alive
     try:
-        envision_thread.join()
+        while True:
+            time.sleep(1)
     except KeyboardInterrupt:
         print("Exiting program...")
         envision.stop()

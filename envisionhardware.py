@@ -2,7 +2,8 @@ import asyncio
 import threading
 import struct
 import base64
-from bleak import BleakClient
+from bleak import BleakClient, BleakScanner
+import contextlib
 
 DEVICE_NAME = "envision"
 DEVICE_ADDRESS = "2C:CF:67:0A:8A:F1"
@@ -38,10 +39,19 @@ class Envision:
         self.update_callback = func
 
     async def _run(self):
-        try:
-            async with BleakClient(DEVICE_ADDRESS) as client:
-                print(f"Connected to {client.address}")
 
+        scan = BleakScanner()
+        await scan.start()
+        device = await scan.find_device_by_name(DEVICE_NAME)
+        await scan.stop()
+        if device is None:
+            print(f"Device {DEVICE_NAME} not found")
+            return
+
+        try:
+            async with BleakClient(device) as client:
+
+                print(f"Connected to {client.address}")
                 print(f"Subscribing to gesture characteristic")
                 await client.start_notify(GESTURE_CHAR_UUID, self._gesture_notification_handler)
 
@@ -49,7 +59,10 @@ class Envision:
                 await client.start_notify(LANDMARK_CHAR_UUID, self._landmark_notification_handler)
                 print("Subscribed!")
 
-                await self.quit_event.wait()
+                while not self.quit_event.is_set():
+                    with contextlib.suppress(asyncio.TimeoutError):
+                        await asyncio.wait_for(self.quit_event.wait(), timeout=1)
+                print("Finished infinite loop")
         except Exception as e:
             print(f"Error in ble thread: {e}")
 
