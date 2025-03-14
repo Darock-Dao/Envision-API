@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter.colorchooser import askcolor
 from tkinter import ttk
 import tkinter as tk
+import itertools
 
 import sys
 import os
@@ -61,6 +62,9 @@ Button(root, image=eraser, bg="#f2f3f5", command=new_canvas).place(x=30,y=400)
 
 colors= Canvas(root,bg="#ffffff",width=37,height=300,bd=0)
 colors.place(x=30, y=60)
+
+all_colors = ['black', 'gray', 'brown4', 'red', 'orange', 'yellow', 'green', 'blue', 'purple']
+color_iter = itertools.cycle(all_colors)
 
 def display_pallette():
     id = colors.create_rectangle((10,10,30,30),fill="black")
@@ -136,12 +140,12 @@ def map_to_canvas(norm_x, norm_y):
 
 drawing = False  # Track whether we're actively drawing
 
-def handle_detection(_, __):
+def handle_detection(_, update_type):
     """Handle detection results (gestures or landmarks) as a moving cursor."""
-    global cursor_dot, current_x, current_y, drawing
-    landmarks = envision.right_landmarks
+    global cursor_dot, current_x, current_y, drawing, color
     
-    if landmarks:
+    if update_type == "landmarks":
+        landmarks = envision.right_landmarks
         index_tip = landmarks[8]  # Index finger tip
         global x, y
         x, y = int(930 - (index_tip[0] * 930)), int(index_tip[1] * 500)  # Scale to canvas size
@@ -152,12 +156,15 @@ def handle_detection(_, __):
             addLine(1)
         current_x, current_y = x, y
 
+    if update_type == "gesture":
         if envision.right_gesture == "Pointing_Up":
             drawing = True
         elif envision.right_gesture == "Closed_Fist":
             drawing = False
         elif envision.right_gesture == "Open_Palm":
             new_canvas()
+        elif envision.right_gesture == "Victory":
+            color = next(color_iter)
 
 envision = envisionhardware.Envision()
 
