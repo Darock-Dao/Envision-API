@@ -23,6 +23,8 @@ import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 from mediapipe.framework.formats import landmark_pb2
+from mediapipe.tasks.python.vision.gesture_recognizer import GestureRecognizerResult
+
 mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
@@ -32,20 +34,24 @@ class gestureEngine:
   # Class variables to calculate FPS
   COUNTER, FPS = 0, 0
   START_TIME = time.time()
-  current_gesture = ""
-  recognition_result_list = []
+  left_hand_gesture = ""
+  right_hand_gesture = ""
+  current_landmarks = []
   
-  def check_gesture(self, user_category):
-    return self.getCurrentGesture() == user_category
+  def checkLeftGesture(self, user_category):
+    return self.getLeftHandGesture() == user_category
   
-  def getCurrentGesture(self):
-    return self.current_gesture
+  def checkRightGesture(self, user_category):
+    return self.getLeftHandGesture() == user_category
   
-  def isHandsDetected(self):
-    if self.recognition_result_list != []:
-      return self.recognition_result_list[0].gestures != []
-    else:
-      return False
+  def getLeftHandGesture(self):
+    return self.left_hand_gesture
+  
+  def getRightHandGesture(self):
+    return self.right_hand_gesture
+  
+  def getCurrentLandmarks(self):
+     return self.current_landmarks
 
   
   def run(self, model: str, num_hands: int,
@@ -54,7 +60,7 @@ class gestureEngine:
     camera_id: int, width: int, height: int) -> None:
 
     # Start capturing video input from the camera
-    cap = cv2.VideoCapture(1)
+    cap = cv2.VideoCapture(0)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
@@ -123,10 +129,16 @@ class gestureEngine:
       cv2.putText(current_frame, fps_text, text_location, cv2.FONT_HERSHEY_DUPLEX,
                   font_size, text_color, font_thickness, cv2.LINE_AA)
 
-      if self.recognition_result_list:
+      if recognition_result_list:
+        self.current_landmarks = recognition_result_list
+
         # Draw landmarks and write the text for each hand.
         for hand_index, hand_landmarks in enumerate(
-            self.recognition_result_list[0].hand_landmarks):
+            recognition_result_list[0].hand_landmarks):
+          
+          # Determine whether it's the left or right hand
+          handedness = recognition_result_list[0].handedness[hand_index][0].category_name
+
           # Calculate the bounding box of the hand
           x_min = min([landmark.x for landmark in hand_landmarks])
           y_min = min([landmark.y for landmark in hand_landmarks])
@@ -145,8 +157,11 @@ class gestureEngine:
             score = round(gesture[0].score, 2)
             result_text = f'{category_name} ({score})'
             
-            self.current_gesture = category_name
-
+            if handedness == "Left":
+                self.left_hand_gesture = category_name
+            if handedness == "Right":
+                self.right_hand_gesture = category_name
+            
             # Compute text size
             text_size = \
             cv2.getTextSize(result_text, cv2.FONT_HERSHEY_DUPLEX, label_font_size,
@@ -206,7 +221,7 @@ class gestureEngine:
         '--numHands',
         help='Max number of hands that can be detected by the recognizer.',
         required=False,
-        default=1)
+        default=2)
     parser.add_argument(
         '--minHandDetectionConfidence',
         help='The minimum confidence score for hand detection to be considered '
