@@ -3,6 +3,7 @@ import threading
 import struct
 import base64
 from bleak import BleakClient, BleakScanner
+import math
 import contextlib
 
 DEVICE_NAME = "envision"
@@ -18,13 +19,14 @@ class Envision:
         self.right_gesture = ""
         self.left_landmarks = []
         self.right_landmarks = []
-        self.right_pinch_strength = 0
+        self.right_pinch_distance = 0
 
         # Bluetooth utils
         self.quit_event = asyncio.Event()
         self.debug = True
         self.update_callback = None
         self.thread = None
+        self.tracking = []
 
     def start(self):
         self.quit_event.clear()
@@ -38,6 +40,28 @@ class Envision:
         if isinstance(self.thread, threading.Thread):
             self.thread.join()
         print("Joined")
+
+    def start_tracking(self, property):
+        if not property in self.tracking:
+            self.tracking.append(property)
+
+    def stop_tracking(self, property):
+        try:
+            self.tracking.remove(property)
+        except ValueError:
+            pass
+
+    def distance(self, f1, f2):
+        if type(f1) != type(f2):
+            return False
+        if isinstance(f1, int):
+            f1 = self.right_landmarks[f1]
+            f2 = self.right_landmarks[f2]
+        # print(math.sqrt(sum((a-b)**2 for a, b in zip(f1, f2))))
+        return math.sqrt(sum((a-b)**2 for a, b in zip(f1, f2)))
+
+    def touching(self, f1, f2, threshold = 0.01):
+        return self.distance(f1, f2) < threshold
 
     def set_update_callback(self, func):
         self.update_callback = func
@@ -82,6 +106,11 @@ class Envision:
         num_floats = len(binary_data) // 4
         floats = struct.unpack(f'{num_floats}f', binary_data)
         self.right_landmarks = [tuple(floats[i:i+3]) for i in range(0, num_floats, 3)]
+
+        # Various tracking properties
+        for prop in self.tracking:
+            if prop == "right_pinch_distance":
+                self.right_pinch_distance = self.distance(4, 8)
 
         if self.update_callback:
             self.update_callback(self, "landmarks")
