@@ -175,7 +175,7 @@ def handle_detection(_, update_type):
             drawing = False
         elif envision.right_gesture == "Open_Palm":
             new_canvas()
-        elif envision.right_gesture == "Victory":
+        elif envision.right_gesture == "ILoveYou":
             color = next(color_iter)
 
 envision = envisionhardware.Envision()
