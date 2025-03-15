@@ -21,7 +21,7 @@ def handle_update(e, type):
         y = int(pointer[1] * 900)
         print(f"X: {x}, Y: {y}")
         #subprocess.run(["sudo", "ydotool", "mousemove", "-a", "-x" , str(x), "-y", str(y)])
-        if frame_count == 5:
+        if frame_count == 3:
             pyautogui.moveTo(x, y)
             frame_count = 0
         else:
