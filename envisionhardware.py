@@ -8,9 +8,9 @@ import contextlib
 
 DEVICE_NAME = "envision"
 DEVICE_ADDRESS = "2C:CF:67:0A:8A:F1"
-SERVICE_UUID = "00000000-0000-0000-0000-0000feedc0de"
-GESTURE_CHAR_UUID = "00000000-0000-0000-0000-0000feedc0df"
-LANDMARK_CHAR_UUID = "00000000-0000-0000-0000-0000feedc0dd"
+SERVICE_UUID = "cb318b24-7544-49fb-941d-b921627de801"
+GESTURE_CHAR_UUID = "cb318b24-7544-49fb-941d-f75f38cc4d72"
+LANDMARK_CHAR_UUID = "cb318b24-7544-49fb-941d-d00ef2a11cb0"
 
 class Envision:
     def __init__(self):
@@ -68,14 +68,25 @@ class Envision:
 
     async def _run(self):
 
-        scan = BleakScanner()
-        device = await scan.find_device_by_name(DEVICE_NAME)
-        if device is None:
-            print(f"Device {DEVICE_NAME} not found")
+        # Connect to device
+        attempt_count = 0
+        devices = None
+        print("Searching for device...", end="", flush=True)
+        while attempt_count < 30 and not devices:
+            devices = await BleakScanner.discover(timeout=0.5, service_uuids=[SERVICE_UUID])
+            attempt_count += 1
+            print(".", end="", flush=True)
+
+        if devices:
+            print("Found!")
+            print(devices[0])
+            device = devices[0]
+        else:
+            print("Unable to find device")
             return
 
         try:
-            async with BleakClient(device) as client:
+            async with BleakClient(DEVICE_ADDRESS) as client:
 
                 print(f"Connected to {client.address}")
                 print(f"Subscribing to gesture characteristic")
