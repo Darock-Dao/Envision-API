@@ -53,14 +53,14 @@ def capture_frame(cam):
     return Image(data=rgb_image, image_format=ImageFormat.SRGB)
 
 current_gesture = [None, None]
-def process_result(sockets, result, output_image):
+def process_result(sockets, result, output_image, timestamp):
 
     ( gesture_socket, landmark_socket ) = sockets
     assigned = [False, False] # Only assign the first left hand and first right hand
     if result.gestures: # At least one hand exists
         for gestures, hand_landmarks, handedness in zip(result.gestures, result.hand_landmarks, result.handedness):
 
-            hand = handedness.category_name[0].lower() # 'l' or 'r'
+            hand = handedness[0].category_name[0].lower() # 'l' or 'r'
             hand_index = 0 if hand == 'l' else 1
             gesture_name = gestures[0].category_name
 
@@ -70,7 +70,7 @@ def process_result(sockets, result, output_image):
                     gesture_socket.sendall(f"{hand}:{gesture_name}\n".encode())
 
             if landmark_socket:
-                binary_data = struct.pack(f"{len(hand_landmarks) * 3}",
+                binary_data = struct.pack(f"{len(hand_landmarks) * 3}f",
                                           *(v for d in hand_landmarks for v in (d.x, d.y, d.z)))
                 landmark_socket.sendall(hand.encode() + base64.b64encode(binary_data) + b'\n')
 
