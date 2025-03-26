@@ -17,8 +17,13 @@ class Envision:
         # Define accessible gestures
         self.left_gesture = ""
         self.right_gesture = ""
+        self.gesture = ""
         self.left_landmarks = []
         self.right_landmarks = []
+        self.landmarks = []
+
+        self.primary = "right"
+
         self.right_pinch_distance = 0
 
         # Bluetooth utils
@@ -86,7 +91,7 @@ class Envision:
             return
 
         try:
-            async with BleakClient(DEVICE_ADDRESS) as client:
+            async with BleakClient(device) as client:
 
                 print(f"Connected to {client.address}")
                 print(f"Subscribing to gesture characteristic")
@@ -104,19 +109,37 @@ class Envision:
             print(f"Error in ble thread: {e}")
 
     async def _gesture_notification_handler(self, sender, data):
-        self.right_gesture = data.decode("utf-8")
+        data = data.decode("utf-8")
+        hand = data[0]
+        if hand == "r":
+            self.right_gesture = data[2:]
+            if self.primary.startswith(hand) or self.left_gesture == "":
+                self.gesture = self.right_gesture
+        elif hand == "l":
+            self.left_gesture = data[2:]
+            if self.primary.startswith(hand) or self.right_gesture == "":
+                self.gesture = self.left_gesture
+
         if self.debug:
-            print(f"Gesture: {self.right_gesture}")
+            print(f"Gesture: {data}")
 
         if self.update_callback:
             self.update_callback(self, "gesture")
 
     async def _landmark_notification_handler(self, sender, data):
+        hand = chr(data[0])
         # Decode base64 data into list of 3d coords
-        binary_data = base64.b64decode(data)
+        binary_data = base64.b64decode(data[2:])
         num_floats = len(binary_data) // 4
         floats = struct.unpack(f'{num_floats}f', binary_data)
-        self.right_landmarks = [tuple(floats[i:i+3]) for i in range(0, num_floats, 3)]
+        if hand == "r":
+            self.right_landmarks = [tuple(floats[i:i+3]) for i in range(0, num_floats, 3)]
+            if self.primary.startswith(hand) or self.left_landmarks == []:
+                self.landmarks = self.right_landmarks
+        elif hand == "l":
+            self.left_landmarks = [tuple(floats[i:i+3]) for i in range(0, num_floats, 3)]
+            if self.primary.startswith(hand) or self.right_landmarks == []:
+                self.landmarks = self.left_landmarks
 
         # Various tracking properties
         for prop in self.tracking:
