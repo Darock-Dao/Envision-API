@@ -1,6 +1,7 @@
 absl-py==2.1.0
 astunparse==1.6.3
 attrs==24.2.0
+bleak==0.22.3
 certifi==2024.8.30
 cffi==1.17.1
 charset-normalizer==3.4.0
@@ -35,6 +36,10 @@ pillow==11.0.0
 protobuf==4.25.5
 pycparser==2.22
 Pygments==2.18.0
+pyobjc-core==10.3.2
+pyobjc-framework-Cocoa==10.3.2
+pyobjc-framework-CoreBluetooth==10.3.2
+pyobjc-framework-libdispatch==10.3.2
 pyparsing==3.2.0
 python-dateutil==2.9.0.post0
 requests==2.32.3
