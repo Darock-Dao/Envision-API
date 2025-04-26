@@ -1,6 +1,6 @@
 # Envision API
 
-Envision API is a Python-based project that provides a set of tools for [describe what your project does].
+Envision API is a Python-based project that provides a set of tools for gesture interface development.
 
 ## Installation
 

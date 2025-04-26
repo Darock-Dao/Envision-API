@@ -8,17 +8,22 @@ import contextlib
 
 DEVICE_NAME = "envision"
 DEVICE_ADDRESS = "2C:CF:67:0A:8A:F1"
-SERVICE_UUID = "00000000-0000-0000-0000-0000feedc0de"
-GESTURE_CHAR_UUID = "00000000-0000-0000-0000-0000feedc0df"
-LANDMARK_CHAR_UUID = "00000000-0000-0000-0000-0000feedc0dd"
+SERVICE_UUID = "cb318b24-7544-49fb-941d-b921627de801"
+GESTURE_CHAR_UUID = "cb318b24-7544-49fb-941d-f75f38cc4d72"
+LANDMARK_CHAR_UUID = "cb318b24-7544-49fb-941d-d00ef2a11cb0"
 
 class Envision:
     def __init__(self):
         # Define accessible gestures
         self.left_gesture = ""
         self.right_gesture = ""
+        self.gesture = ""
         self.left_landmarks = []
         self.right_landmarks = []
+        self.landmarks = []
+
+        self.primary = "right"
+
         self.right_pinch_distance = 0
 
         # Bluetooth utils
@@ -68,44 +73,74 @@ class Envision:
 
     async def _run(self):
 
-        scan = BleakScanner()
-        device = await scan.find_device_by_name(DEVICE_NAME)
-        if device is None:
-            print(f"Device {DEVICE_NAME} not found")
+        # Connect to device
+        attempt_count = 0
+        devices = None
+        print("Searching for device...", end="", flush=True)
+        while attempt_count < 30 and not devices:
+            devices = await BleakScanner.discover(timeout=0.5, service_uuids=[SERVICE_UUID])
+            attempt_count += 1
+            print(".", end="", flush=True)
+
+        if devices:
+            print("Found!")
+            print(devices[0])
+            device = devices[0]
+        else:
+            print("Unable to find device")
             return
 
         try:
-            async with BleakClient(device) as client:
+            client = BleakClient(device)
+            await client.connect()
 
-                print(f"Connected to {client.address}")
-                print(f"Subscribing to gesture characteristic")
-                await client.start_notify(GESTURE_CHAR_UUID, self._gesture_notification_handler)
+            print(f"Connected to {client.address}")
+            print(f"Subscribing to gesture characteristic")
+            await client.start_notify(GESTURE_CHAR_UUID, self._gesture_notification_handler)
 
-                print(f"Subscribing to landmark characteristic")
-                await client.start_notify(LANDMARK_CHAR_UUID, self._landmark_notification_handler)
-                print("Subscribed!")
+            print(f"Subscribing to landmark characteristic")
+            await client.start_notify(LANDMARK_CHAR_UUID, self._landmark_notification_handler)
+            print("Subscribed!")
 
-                while not self.quit_event.is_set():
-                    with contextlib.suppress(asyncio.TimeoutError):
-                        await asyncio.wait_for(self.quit_event.wait(), timeout=1)
-                print("Finished infinite loop")
+            while not self.quit_event.is_set():
+                with contextlib.suppress(asyncio.TimeoutError):
+                    await asyncio.wait_for(self.quit_event.wait(), timeout=1)
+            print("Finished infinite loop")
         except Exception as e:
             print(f"Error in ble thread: {e}")
 
     async def _gesture_notification_handler(self, sender, data):
-        self.right_gesture = data.decode("utf-8")
+        data = data.decode("utf-8")
+        hand = data[0]
+        if hand == "r":
+            self.right_gesture = data[2:]
+            if self.primary.startswith(hand) or self.left_gesture == "":
+                self.gesture = self.right_gesture
+        elif hand == "l":
+            self.left_gesture = data[2:]
+            if self.primary.startswith(hand) or self.right_gesture == "":
+                self.gesture = self.left_gesture
+
         if self.debug:
-            print(f"Gesture: {self.right_gesture}")
+            print(f"Gesture: {data}")
 
         if self.update_callback:
             self.update_callback(self, "gesture")
 
     async def _landmark_notification_handler(self, sender, data):
+        hand = chr(data[0])
         # Decode base64 data into list of 3d coords
-        binary_data = base64.b64decode(data)
+        binary_data = base64.b64decode(data[2:])
         num_floats = len(binary_data) // 4
         floats = struct.unpack(f'{num_floats}f', binary_data)
-        self.right_landmarks = [tuple(floats[i:i+3]) for i in range(0, num_floats, 3)]
+        if hand == "r":
+            self.right_landmarks = [tuple(floats[i:i+3]) for i in range(0, num_floats, 3)]
+            if self.primary.startswith(hand) or self.left_landmarks == []:
+                self.landmarks = self.right_landmarks
+        elif hand == "l":
+            self.left_landmarks = [tuple(floats[i:i+3]) for i in range(0, num_floats, 3)]
+            if self.primary.startswith(hand) or self.right_landmarks == []:
+                self.landmarks = self.left_landmarks
 
         # Various tracking properties
         for prop in self.tracking:

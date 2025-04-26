@@ -15,15 +15,21 @@ import struct
 
 gesture_client = None
 current_gesture = None
-if os.path.exists("/tmp/gesture-ipc.sock"):
+if os.path.exists("/tmp/envision-gesture.sock"):
     gesture_client = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    gesture_client.connect("/tmp/gesture-ipc.sock")
+    gesture_client.connect("/tmp/envision-gesture.sock")
+    print("Connected gesture socket")
+else:
+    print("Failed to connect to /tmp/envision-gesture.sock")
 
 landmark_client = None
 landmarks = []
-if os.path.exists("/tmp/landmark-ipc.sock"):
+if os.path.exists("/tmp/envision-landmark.sock"):
     landmark_client = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    landmark_client.connect("/tmp/landmark-ipc.sock")
+    landmark_client.connect("/tmp/envision-landmark.sock")
+    print("Connected landmark socket")
+else:
+    print("Failed to connect to /tmp/envision-landmark.sock")
 
 print("Configuring camera")
 picam = Picamera2()
@@ -75,7 +81,7 @@ with GestureRecognizer.create_from_options(options) as recognizer:
     #     image = cv2.flip(image, 1)
     #     rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     #     mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_image)
-
+    print("Starting recognition")
     while picam.is_open:
         image = picam.capture_array("main")
         rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -150,4 +156,4 @@ with GestureRecognizer.create_from_options(options) as recognizer:
         #cv2.imshow('MediaPipe Gesture Recognizer', image)
         if cv2.waitKey(5) & 0xFF == 27:
             break
-    cap.release()
+    #cap.release()
