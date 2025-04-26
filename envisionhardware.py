@@ -91,20 +91,21 @@ class Envision:
             return
 
         try:
-            async with BleakClient(device) as client:
+            client = BleakClient(device)
+            await client.connect()
 
-                print(f"Connected to {client.address}")
-                print(f"Subscribing to gesture characteristic")
-                await client.start_notify(GESTURE_CHAR_UUID, self._gesture_notification_handler)
+            print(f"Connected to {client.address}")
+            print(f"Subscribing to gesture characteristic")
+            await client.start_notify(GESTURE_CHAR_UUID, self._gesture_notification_handler)
 
-                print(f"Subscribing to landmark characteristic")
-                await client.start_notify(LANDMARK_CHAR_UUID, self._landmark_notification_handler)
-                print("Subscribed!")
+            print(f"Subscribing to landmark characteristic")
+            await client.start_notify(LANDMARK_CHAR_UUID, self._landmark_notification_handler)
+            print("Subscribed!")
 
-                while not self.quit_event.is_set():
-                    with contextlib.suppress(asyncio.TimeoutError):
-                        await asyncio.wait_for(self.quit_event.wait(), timeout=1)
-                print("Finished infinite loop")
+            while not self.quit_event.is_set():
+                with contextlib.suppress(asyncio.TimeoutError):
+                    await asyncio.wait_for(self.quit_event.wait(), timeout=1)
+            print("Finished infinite loop")
         except Exception as e:
             print(f"Error in ble thread: {e}")
 
